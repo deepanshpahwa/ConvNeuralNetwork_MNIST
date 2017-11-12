@@ -1,6 +1,6 @@
 from load import mnist
 import numpy as np
-import pylab 
+import pylab
 
 import theano
 from theano import tensor as T
@@ -8,6 +8,7 @@ from theano.tensor.nnet import conv2d
 from theano.tensor.signal import pool
 
 # 1 convolution layer, 1 max pooling layer and a softmax layer
+
  
 np.random.seed(10)
 batch_size = 128
@@ -16,7 +17,7 @@ noIters = 25
 def init_weights_bias4(filter_shape, d_type):
     fan_in = np.prod(filter_shape[1:])
     fan_out = filter_shape[0] * np.prod(filter_shape[2:])
-     
+
     bound = np.sqrt(6. / (fan_in + fan_out))
     w_values =  np.asarray(
             np.random.uniform(low=-bound, high=bound, size=filter_shape),
@@ -27,7 +28,7 @@ def init_weights_bias4(filter_shape, d_type):
 def init_weights_bias2(filter_shape, d_type):
     fan_in = filter_shape[1]
     fan_out = filter_shape[0]
-     
+
     bound = np.sqrt(6. / (fan_in + fan_out))
     w_values =  np.asarray(
             np.random.uniform(low=-bound, high=bound, size=filter_shape),
@@ -35,12 +36,12 @@ def init_weights_bias2(filter_shape, d_type):
     b_values = np.zeros((filter_shape[1],), dtype=d_type)
     return theano.shared(w_values,borrow=True), theano.shared(b_values, borrow=True)
 
-def model(X, w1, b1, w2, b2): 
+def model(X, w1, b1, w2, b2):
     y1 = T.nnet.relu(conv2d(X, w1) + b1.dimshuffle('x', 0, 'x', 'x'))
     pool_dim = (4, 4)
     o1 = pool.pool_2d(y1, pool_dim)
     o2 = T.flatten(o1, outdim=2)
- 
+
     pyx = T.nnet.softmax(T.dot(o2, w2) + b2)
     return y1, o1, pyx
 
@@ -56,7 +57,7 @@ def shuffle_data (samples, labels):
     np.random.shuffle(idx)
     samples, labels = samples[idx], labels[idx]
     return samples, labels
-    
+
 trX, teX, trY, teY = mnist(onehot=True)
 
 trX = trX.reshape(-1, 1, 28, 28)
