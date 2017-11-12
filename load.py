@@ -13,6 +13,7 @@ def one_hot(x, n):
 
 def mnist(ntrain=60000, ntest=10000, onehot=True):
 	data_dir = os.path.join(datasets_dir,'mnist/')
+
 	fd = open(os.path.join(data_dir,'train-images-idx3-ubyte'))
 	loaded = np.fromfile(file=fd,dtype=np.uint8)
 	trX = loaded[16:].reshape((60000,28*28)).astype(float)
@@ -46,7 +47,3 @@ def mnist(ntrain=60000, ntest=10000, onehot=True):
 		teY = np.asarray(teY)
 
 	return trX,teX,trY,teY
-
-
-	
-        

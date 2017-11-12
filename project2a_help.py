@@ -9,7 +9,7 @@ from theano.tensor.signal import pool
 
 # 1 convolution layer, 1 max pooling layer and a softmax layer
 
- 
+
 np.random.seed(10)
 batch_size = 128
 noIters = 25
@@ -36,14 +36,21 @@ def init_weights_bias2(filter_shape, d_type):
     b_values = np.zeros((filter_shape[1],), dtype=d_type)
     return theano.shared(w_values,borrow=True), theano.shared(b_values, borrow=True)
 
-def model(X, w1, b1, w2, b2):
-    y1 = T.nnet.relu(conv2d(X, w1) + b1.dimshuffle('x', 0, 'x', 'x'))
-    pool_dim = (4, 4)
-    o1 = pool.pool_2d(y1, pool_dim)
-    o2 = T.flatten(o1, outdim=2)
+def model(X, w1, b1, w2, b2, w3, b3):
+    pool_dim = (2, 2)
 
-    pyx = T.nnet.softmax(T.dot(o2, w2) + b2)
-    return y1, o1, pyx
+    y1 = T.nnet.relu(conv2d(X, w1) + b1.dimshuffle('x', 0, 'x', 'x'))
+    o1 = pool.pool_2d(y1, pool_dim)
+
+    y2 = T.nnet.relu(conv2d(o1, w2) + b2.dimshuffle('x', 0, 'x', 'x'))
+    o2 = pool.pool_2d(y2, pool_dim)
+
+    o2 = T.flatten(o2, outdim=2)
+
+    y3 = T.nnet.relu(T.dot(o2,w3)+b3)
+
+    y4 = T.nnet.softmax(T.dot(y3, w4) + b4)
+    return y1, o1, y2, o2, y3, y4
 
 def sgd(cost, params, lr=0.05, decay=0.0001):
     grads = T.grad(cost=cost, wrt=params)
@@ -70,16 +77,20 @@ teX, teY = teX[:2000], teY[:2000]
 X = T.tensor4('X')
 Y = T.matrix('Y')
 
-num_filters = 25
-w1, b1 = init_weights_bias4((num_filters, 1, 9, 9), X.dtype)
-w2, b2 = init_weights_bias2((num_filters*5*5, 10), X.dtype)
+num_filters_1 = 15
+num_filters_2 = 20
 
-y1, o1, py_x  = model(X, w1, b1, w2, b2)
+w1, b1 = init_weights_bias4((num_filters_1, 1, 9, 9), X.dtype)
+##add a line here
+w2,b2 = init_weights_bias4((num_filters_2, 1, 5, 5), X.dtype)
+w3, b3 = init_weights_bias2((num_filters_2*3*3, 100), X.dtype)#TODO not sure what should be the first input
+w4,b4 = init_weights_bias2(100,10)
+y1, o1, y2, o3, y3, y4  = model(X, w1, b1, w2, b2, w3, b3, w4, b4)
 
-y_x = T.argmax(py_x, axis=1)
+y_x = T.argmax(y4, axis=1)
 
-cost = T.mean(T.nnet.categorical_crossentropy(py_x, Y))
-params = [w1, b1, w2, b2]
+cost = T.mean(T.nnet.categorical_crossentropy(y4, Y))
+params = [w1, b1, w2, b2, w3, b3, w4, b4]
 
 updates = sgd(cost, params, lr=0.05)
 
