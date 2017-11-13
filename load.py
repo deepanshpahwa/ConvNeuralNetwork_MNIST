@@ -1,7 +1,8 @@
 import numpy as np
 import os
 
-datasets_dir = '../data/'
+datasets_dir = '/Users/srush/Desktop/Deepansh Resume/ConvNeuralNetwork_MNIST/data'
+#datasets_dir = '/'
 
 def one_hot(x, n):
 	if type(x) == list:
@@ -12,6 +13,8 @@ def one_hot(x, n):
 	return o_h
 
 def mnist(ntrain=60000, ntest=10000, onehot=True):
+
+
 	data_dir = os.path.join(datasets_dir,'mnist/')
 
 	fd = open(os.path.join(data_dir,'train-images-idx3-ubyte'))
